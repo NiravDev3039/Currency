@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+         @font-face {
+        font-family: 'Chocolate Bar Demo';
+        src: url('./Chocolate\ Bar\ Demo.otf') format('woff2'),
+             url('path/to/your/font.woff') format('woff');
+        font-weight: normal;
+        font-style: normal;
+    }
+        body{
+            background: url('./background.png');
+            background-repeat: no-repeat;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            background-color: #f3f4f6; /* Example background color */
+        }
+        .converter-container {
+            max-width: 500px !important; /* Adjust max-width as needed */
+            background-color: rgb(153 202 117) !important;
+            
+
+        }
+        input,select{
+            background-color: #e5e7eb;
+        }
+        button{
+           background-color:rgb(250 195 80) !important;
+           color: black !important;
+           font-weight: 900 ;
+}
+        }
+    </style>
+</head>
+<body class="bg-gray-200 p-4">
+
+    <div class="converter-container bg-white rounded p-8 shadow-md">
+        <h2 class="text-4xl font-bold mb-6 text-center" style=" font-family: 'Chocolate Bar Demo', cursive !important;">Currency Converter</h2>
+    
+        <div class="mb-4">
+            <label for="amount" class="block text-sm font-medium text-gray-700" style=" font-family: 'Chocolate Bar Demo', cursive !important;">Amount</label>
+            <input type="number" id="amount" name="amount" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Enter amount">
+        </div>
+    
+        <div class="mb-4">
+            <label for="fromCurrency" class="block text-sm font-medium text-gray-700" style=" font-family: 'Chocolate Bar Demo', cursive !important;">From Currency</label>
+            <select id="fromCurrency" name="fromCurrency" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <!-- Options will be added dynamically via JavaScript -->
+            </select>
+        </div>
+    
+        <div class="mb-6">
+            <label for="toCurrency" class="block text-sm font-medium text-gray-700" style=" font-family: 'Chocolate Bar Demo', cursive !important;">To Currency</label>
+            <select id="toCurrency" name="toCurrency" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <!-- Options will be added dynamically via JavaScript -->
+            </select>
+        </div>
+    
+        <button id="convertBtn" class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">CONVERT</button>
+    
+        <div id="conversionResult" class="mt-4 text-center text-lg font-bold"></div> <!-- Result will be displayed here -->
+    </div>
+    
+
+<script>
+// Fetch currency rates from API (ex: ExchangeRatesAPI.io)
+async function fetchCurrencyRates(baseCurrency) {
+    try {
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${baseCurrency}`);
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch exchange rates');
+        }
+        const data = await response.json();
+        return data.rates;
+    } catch (error) {
+        console.error('Error fetching currency rates:', error.message);
+        return null;
+    }
+}
+
+// Populate select options with currency codes
+function populateCurrencies(selectElement, currencies) {
+    selectElement.innerHTML = Object.keys(currencies).map(currency => `<option value="${currency}">${currency}</option>`).join('');
+}
+
+// Convert currency
+function convertCurrency(amount, fromCurrency, toCurrency, rates) {
+    if (!rates) {
+        console.error('Currency rates not available');
+        return null;
+    }
+
+    const rate = rates[toCurrency];
+    if (!rate) {
+        console.error(`Rate for ${toCurrency} not found`);
+        return null;
+    }
+
+    const convertedAmount = amount * rate;
+    return convertedAmount.toFixed(2); // Round to 2 decimal places
+}
+
+// DOM elements
+const amountInput = document.getElementById('amount');
+const fromCurrencySelect = document.getElementById('fromCurrency');
+const toCurrencySelect = document.getElementById('toCurrency');
+const convertBtn = document.getElementById('convertBtn');
+const conversionResult = document.getElementById('conversionResult');
+
+// Initial setup
+fetchCurrencyRates('USD').then(rates => {
+    if (rates) {
+        populateCurrencies(fromCurrencySelect, rates);
+        populateCurrencies(toCurrencySelect, rates);
+    }
+});
+
+// Event listener for convert button
+convertBtn.addEventListener('click', () => {
+    const amount = parseFloat(amountInput.value);
+    const fromCurrency = fromCurrencySelect.value;
+    const toCurrency = toCurrencySelect.value;
+
+    fetchCurrencyRates(fromCurrency).then(rates => {
+        const result = convertCurrency(amount, fromCurrency, toCurrency, rates);
+        if (result !== null) {
+            conversionResult.textContent = `${amount} ${fromCurrency} = ${result} ${toCurrency}`;
+        } else {
+            conversionResult.textContent = 'Conversion failed. Please try again later.';
+        }
+    });
+});
+</script>
+
+</body>
+</html>
